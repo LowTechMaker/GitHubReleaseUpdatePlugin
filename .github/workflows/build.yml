@@ -1,0 +1,30 @@
+name: Auto CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v4
+
+      - name: Checkout SceneGallery SDK
+        uses: actions/checkout@v4
+        with:
+          repository: LowTechMaker/KoikatsuSceneGallery
+          path: KoikatsuSceneGallery
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+          dotnet-quality: "ga"
+
+      - name: Build
+        run: dotnet build SceneGallery.Plugin.GitHubReleaseUpdates.csproj -c Release -p:SceneGalleryAppDir="$env:GITHUB_WORKSPACE\KoikatsuSceneGallery"
