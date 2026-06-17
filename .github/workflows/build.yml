@@ -12,10 +12,10 @@ jobs:
 
     steps:
       - name: Checkout plugin
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Checkout SceneGallery SDK
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: LowTechMaker/KoikatsuSceneGallery
           path: KoikatsuSceneGallery
