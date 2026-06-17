@@ -6,6 +6,7 @@
     <RootNamespace>SceneGallery.Plugin.GitHubReleaseUpdates</RootNamespace>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <Version>1.0.0</Version>
+    <DefaultItemExcludes>$(DefaultItemExcludes);KoikatsuSceneGallery\**</DefaultItemExcludes>
     <SceneGalleryAppDir Condition="'$(SceneGalleryAppDir)' == ''">$(MSBuildThisFileDirectory)..\KoikatsuSceneGallery</SceneGalleryAppDir>
   </PropertyGroup>
 
