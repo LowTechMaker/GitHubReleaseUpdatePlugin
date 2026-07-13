@@ -28,3 +28,6 @@ jobs:
 
       - name: Build
         run: dotnet build SceneGallery.Plugin.GitHubReleaseUpdates.csproj -c Release -p:SceneGalleryAppDir="$env:GITHUB_WORKSPACE\KoikatsuSceneGallery"
+
+      - name: Test
+        run: dotnet test SceneGallery.Plugin.GitHubReleaseUpdates.Tests/SceneGallery.Plugin.GitHubReleaseUpdates.Tests.csproj -c Release -p:DeployPluginToApp=false -p:SceneGalleryAppDir="$env:GITHUB_WORKSPACE\KoikatsuSceneGallery"

@@ -1,23 +1,18 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SceneGallery.PluginSdk;
 
 [assembly: AssemblyMetadata("PluginDescription", "Checks plugin updates from GitHub Releases")]
+[assembly: AssemblyMetadata("PluginUpdateUrl", "https://github.com/LowTechMaker/GitHubReleaseUpdatePlugin")]
+[assembly: InternalsVisibleTo("SceneGallery.Plugin.GitHubReleaseUpdates.Tests")]
 
 namespace SceneGallery.Plugin.GitHubReleaseUpdates;
 
 public sealed class GitHubReleaseUpdatePlugin : IPluginUpdateProvider, IDisposable
 {
-    private readonly HttpClient _http = new()
-    {
-        Timeout = TimeSpan.FromSeconds(10),
-        DefaultRequestHeaders =
-        {
-            { "Accept", "application/vnd.github+json" },
-            { "User-Agent", "SceneGallery-GitHubReleaseUpdatePlugin/1.0" },
-        },
-    };
+    private readonly HttpClient _http;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -25,6 +20,21 @@ public sealed class GitHubReleaseUpdatePlugin : IPluginUpdateProvider, IDisposab
     };
 
     private IPluginHost? _host;
+
+    public GitHubReleaseUpdatePlugin()
+        : this(new HttpClientHandler())
+    {
+    }
+
+    internal GitHubReleaseUpdatePlugin(HttpMessageHandler handler)
+    {
+        _http = new HttpClient(handler)
+        {
+            Timeout = TimeSpan.FromSeconds(10),
+        };
+        _http.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+        _http.DefaultRequestHeaders.Add("User-Agent", "SceneGallery-GitHubReleaseUpdatePlugin/1.0");
+    }
 
     public string Name => "GitHub Release Updates";
 
@@ -48,9 +58,16 @@ public sealed class GitHubReleaseUpdatePlugin : IPluginUpdateProvider, IDisposab
                 return null;
 
             var version = NormalizeTag(release.TagName);
+            var downloadUrl = PickDownloadUrl(release, request.PluginName, version);
+            if (downloadUrl is null)
+            {
+                _host?.Log($"No usable asset for {request.PluginName} in GitHub release {release.TagName}.");
+                return null;
+            }
+
             return new PluginUpdateResult(
                 version,
-                PickDownloadUrl(release),
+                downloadUrl,
                 TrimChangelog(release.Body));
         }
         catch (OperationCanceledException)
@@ -98,14 +115,22 @@ public sealed class GitHubReleaseUpdatePlugin : IPluginUpdateProvider, IDisposab
         return tag.StartsWith('v') || tag.StartsWith('V') ? tag[1..] : tag;
     }
 
-    private static string? PickDownloadUrl(GitHubRelease release)
+    private static string? PickDownloadUrl(GitHubRelease release, string pluginName, string version)
     {
-        var dllAsset = release.Assets.FirstOrDefault(a =>
-            a.Name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
-            || a.BrowserDownloadUrl.EndsWith(".dll", StringComparison.OrdinalIgnoreCase));
-        return dllAsset?.BrowserDownloadUrl
-            ?? release.Assets.FirstOrDefault()?.BrowserDownloadUrl
-            ?? release.HtmlUrl;
+        var assemblySuffix = string.Concat(pluginName.Where(char.IsLetterOrDigit));
+        if (assemblySuffix.Length == 0)
+            return null;
+
+        var assemblyName = $"SceneGallery.Plugin.{assemblySuffix}";
+        var unversionedName = $"{assemblyName}.dll";
+        var versionedName = $"{assemblyName}-{version}.dll";
+
+        return release.Assets.FirstOrDefault(a =>
+                   a.Name.Equals(unversionedName, StringComparison.OrdinalIgnoreCase)
+                   && !string.IsNullOrWhiteSpace(a.BrowserDownloadUrl))?.BrowserDownloadUrl
+               ?? release.Assets.FirstOrDefault(a =>
+                   a.Name.Equals(versionedName, StringComparison.OrdinalIgnoreCase)
+                   && !string.IsNullOrWhiteSpace(a.BrowserDownloadUrl))?.BrowserDownloadUrl;
     }
 
     private static string? TrimChangelog(string? body)
