@@ -6,19 +6,19 @@ on:
   pull_request:
     branches: [master]
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      NuGetPackageSourceCredentials_SceneGalleryGitHub: "Username=${{ github.actor }};Password=${{ secrets.GITHUB_TOKEN }}"
 
     steps:
       - name: Checkout plugin
         uses: actions/checkout@v4
-
-      - name: Checkout SceneGallery SDK
-        uses: actions/checkout@v4
-        with:
-          repository: LowTechMaker/KoikatsuSceneGallery
-          path: KoikatsuSceneGallery
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
@@ -27,7 +27,7 @@ jobs:
           dotnet-quality: "ga"
 
       - name: Build
-        run: dotnet build SceneGallery.Plugin.GitHubReleaseUpdates.csproj -c Release -p:SceneGalleryAppDir="$env:GITHUB_WORKSPACE\KoikatsuSceneGallery"
+        run: dotnet build SceneGallery.Plugin.GitHubReleaseUpdates.csproj -c Release
 
       - name: Test
-        run: dotnet test SceneGallery.Plugin.GitHubReleaseUpdates.Tests/SceneGallery.Plugin.GitHubReleaseUpdates.Tests.csproj -c Release -p:DeployPluginToApp=false -p:SceneGalleryAppDir="$env:GITHUB_WORKSPACE\KoikatsuSceneGallery"
+        run: dotnet test SceneGallery.Plugin.GitHubReleaseUpdates.Tests/SceneGallery.Plugin.GitHubReleaseUpdates.Tests.csproj -c Release -p:DeployPluginToApp=false

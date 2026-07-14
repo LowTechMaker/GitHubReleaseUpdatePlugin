@@ -6,18 +6,12 @@
     <RootNamespace>SceneGallery.Plugin.GitHubReleaseUpdates</RootNamespace>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>
-    <DefaultItemExcludes>$(DefaultItemExcludes);KoikatsuSceneGallery\**;SceneGallery.Plugin.GitHubReleaseUpdates.Tests\**</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);SceneGallery.Plugin.GitHubReleaseUpdates.Tests\**</DefaultItemExcludes>
     <SceneGalleryAppDir Condition="'$(SceneGalleryAppDir)' == ''">$(MSBuildThisFileDirectory)..\KoikatsuSceneGallery</SceneGalleryAppDir>
   </PropertyGroup>
 
-  <ItemGroup Condition="Exists('$(SceneGalleryAppDir)\PluginSdk\SceneGallery.PluginSdk.csproj')">
-    <ProjectReference Include="$(SceneGalleryAppDir)\PluginSdk\SceneGallery.PluginSdk.csproj" Private="false" />
-  </ItemGroup>
-
-  <ItemGroup Condition="!Exists('$(SceneGalleryAppDir)\PluginSdk\SceneGallery.PluginSdk.csproj')">
-    <Reference Include="SceneGallery.PluginSdk" Private="false">
-      <HintPath>lib\SceneGallery.PluginSdk.dll</HintPath>
-    </Reference>
+  <ItemGroup>
+    <PackageReference Include="SceneGallery.PluginSdk" Version="1.0.0" ExcludeAssets="runtime" PrivateAssets="all" />
   </ItemGroup>
 
   <PropertyGroup>
