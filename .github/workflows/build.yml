@@ -26,8 +26,6 @@ jobs:
           dotnet-version: "10.0.x"
           dotnet-quality: "ga"
 
-      - name: Build
-        run: dotnet build SceneGallery.Plugin.GitHubReleaseUpdates.csproj -c Release
-
-      - name: Test
-        run: dotnet test SceneGallery.Plugin.GitHubReleaseUpdates.Tests/SceneGallery.Plugin.GitHubReleaseUpdates.Tests.csproj -c Release -p:DeployPluginToApp=false
+      - name: Verify plugin
+        shell: pwsh
+        run: ./eng/Verify-Plugin.ps1

@@ -3,3 +3,4 @@ obj/
 .codex-build/
 .vs/
 *.user
+**/TestResults/
